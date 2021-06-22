@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<itemLots>
+	<itemLot id="0" internalName="itemLot1">
+		<item itemId="0" category="1" quantity="1"/>
+		<item itemId="1" category="1" quantity="1"/>
+	</itemLot>
+	<itemLot id="1" internalName="itemLotQuest1">
+		<item itemId="2" category="3" quantity="1"/>
+	</itemLot>
+</itemLots>

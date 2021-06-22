@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items>
+	<item id="0" internalName="potion_health_weak" displayNameTextId="0" descriptionTextId="0" itemEffectId="0" iconId="0" isConsumable="1" isKey="0"/>
+	<item id="1" internalName="mana_potion_weak" displayNameTextId="1" descriptionTextId="1" itemEffectId="1" iconId="1" isConsumable="1" isKey="0"/>
+	<item id="2" internalName="ring_quest1" itemEffectId="-1" iconId="2" isConsumable="0" isKey="1"/>
+</items>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items>
+	<item id="0">
+		<name>Weak Health Potion</name>
+		<desc>The weakest of healing potions. It restores 10 health points.</desc>
+	</item>
+	<item id="1">
+		<name>Weak Mana Potion</name>
+		<desc>The weakest of Mana potions. It restores 10 Mana points.</desc>
+	</item>
+	<item id="2">
+		<name>Simple Ring</name>
+		<desc>A ring. It appears to be utterly unremarkable.</desc>
+	</item>
+</items>

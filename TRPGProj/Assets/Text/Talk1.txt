@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<states>
+	<state id="0" name="init">
+		<npctext>Hey, would you mind helping me find a ring?
+I must have lost it somewhere in the woods to the north, but I couldn't find it.</npctext>
+		<responses numElements="2">
+			<response>OK, I'll look out for it.</response>
+			<response>I don't have time for this.</response>
+		</responses>
+	</state>
+	<state id="1" name="denied_end">
+		<npctext>Oh, all right then. Please come back if you change your mind.</npctext>
+		<responses numElements="1">
+			<response>Goodbye.</response>
+		</responses>
+	</state>
+	<state id="2" name="denied_init">
+		<npctext>Are you gonna help me find it? I've last had the ring when I was out in the woods to the north.</npctext>
+		<responses numElements="2">
+			<response>OK, I'll look out for it.</response>
+			<response>I don't have time for this.</response>
+		</responses>
+	</state>
+	<state id="3" name="accepted_end">
+		<npctext>Please let me know when have it.</npctext>
+		<responses numElements="1">
+			<response>Goodbye.</response>
+		</responses>
+	</state>
+	<state id="4" name="accepted_init_pending">
+		<npctext>Have you found it?</npctext>
+		<responses numElements="1">
+			<response>Not yet.</response>
+		</responses>
+	</state>
+	<state id="5" name="accepted_init_done">
+		<npctext>Have you found it?</npctext>
+		<responses numElements="1">
+			<response>Is it this one?</response>
+		</responses>
+	</state>
+	<state id="6" name="completed">
+		<npctext>Oh yes! Thank you so much. Here is a reward for your trouble</npctext>
+		<responses numElements="1">
+			<response>Goodbye.</response>
+		</responses>
+	</state>
+	<state id="7" name="init_done">
+	<npctext>Hey, would you mind helping me find a ring? 
+I must have lost it somewhere in the woods to the north, but I couldn't find it.</npctext>
+		<responses numElements="1">
+			<response>Is it this one?</response>
+		</responses>
+	</state>
+	<state id="8" name="denied_done">
+		<npctext>Are you gonna help me find it? I've last had the ring when I was out in the woods to the north.</npctext>
+		<responses numElements="1">
+			<response>Is it this one?</response>
+		</responses>
+	</state>
+	<state id="9" name="completed_rewarded">
+		<npctext>Hehe, thanks a lot.</npctext>
+		<responses numElements="1">
+			<response>Goodbye.</response>
+		</responses>
+	</state>
+</states>
