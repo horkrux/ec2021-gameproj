@@ -68,7 +68,17 @@ public class PlayerController : MonoBehaviour
                     PlayerChr.Target = hit.collider.gameObject.transform.parent.gameObject;
 
                 }
-                
+                else if (hit.collider.gameObject.CompareTag("Attack"))
+                {
+                    movePoint = hit.collider.gameObject.transform.position;
+                    movePoint.y += playerHeight; //this is wrong
+                    PlayerChr.Moving = true;
+                    PlayerChr.Rotating = true;
+                    PlayerChr.SelectedTargetId = 1;
+                    PlayerChr.Target = hit.collider.gameObject.transform.parent.gameObject;
+
+                }
+
             }
         }
 
@@ -118,12 +128,28 @@ public class PlayerController : MonoBehaviour
             //Vector3 newDirection = Vector3.RotateTowards(PlayerChr.gameObject.transform.forward, targetDir, 0.5f, 0.0f);
             //PlayerChr.gameObject.transform.rotation = Quaternion.LookRotation(newDirection);
             //playerRb.MoveRotation(Quaternion.Euler(newDirection));
+
+            Vector3 targetDir = movePoint - playerRb.position;
+
+            if (PlayerChr.Rotating)
+            {
+                Vector3 newDirection = Vector3.RotateTowards(PlayerChr.gameObject.transform.forward, targetDir, 0.1f, 0.0f);
+                
+                playerRb.MoveRotation(Quaternion.LookRotation(newDirection));
+
+                //PlayerChr.Rotating = false;
+            }
+            //Vector3 newDirection = Vector3.RotateTowards(playerRb.transform.forward, targetDir, 0.1f, 0.0f);
+            //playerRb.MoveRotation(Quaternion.Euler(newDirection));
+            //PlayerChr.gameObject.transform.rotation = Quaternion.Euler(newDirection);
+            //playerRb.MoveRotation(Quaternion.Euler(new Vector3(0, 90.0f, 0)));
             Vector3 inter = Vector3.MoveTowards(playerRb.position, movePoint, 0.1f);
             inter.y = terrain.SampleHeight(inter) + playerHeight;
             playerRb.MovePosition(inter);
 
             if (Vector3.Distance(playerRb.position, movePoint) < 0.001f)
             {
+                PlayerChr.Rotating = false;
                 PlayerChr.Moving = false;
             }
         }

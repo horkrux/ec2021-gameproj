@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class PlayerCharacter : Character
 {
+    private xbot playerAnimController;
+    private Animator animator;
     private ChrStatModule Stats;
     private Inventory _inventory;
     //private PlayerController Controller;
@@ -18,8 +20,10 @@ public class PlayerCharacter : Character
     }
     public bool Moving
     {
-        get { return _moving; }
-        set { _moving = value; }
+        get { return animator.GetBool("IsMoving"); }
+        set { animator.SetBool("IsMoving", value); }
+        //get { return _moving; }
+        //set { _moving = value; }
     }
 
     public bool Rotating
@@ -44,6 +48,8 @@ public class PlayerCharacter : Character
     {
         Stats = gameObject.AddComponent<ChrStatModule>();
         _inventory = gameObject.AddComponent<Inventory>();
+        animator = gameObject.GetComponentInChildren<Animator>();
+        playerAnimController = gameObject.GetComponentInChildren<xbot>();
 
         //hardcode some values
 
@@ -71,7 +77,7 @@ public class PlayerCharacter : Character
             if (_target == collision.gameObject)
             {
                 _selectedTargetId = -1;
-                _moving = false;
+                Moving = false;
                 _rotating = false;
                 _target = null;
             }
@@ -84,7 +90,7 @@ public class PlayerCharacter : Character
         if (collision.gameObject.CompareTag("Loot"))
         {
             _selectedTargetId = -1;
-            _moving = false;
+            Moving = false;
             _rotating = false;
         }
     }
@@ -95,9 +101,10 @@ public class PlayerCharacter : Character
         {
             if (_target == other.gameObject)
             {
+                animator.SetBool("IsPickup", true);
                 other.gameObject.GetComponent<Loot>().pickUp(Inventory);
                 _selectedTargetId = -1;
-                _moving = false;
+                Moving = false;
                 _rotating = false;
                 _target = null;
             }
@@ -111,7 +118,62 @@ public class PlayerCharacter : Character
                 _target = null;
                 other.gameObject.GetComponent<Talk>().Init();
                 _selectedTargetId = -1;
-                _moving = false;
+                Moving = false;
+                _rotating = false;
+            }
+        }
+        else if (other.gameObject.CompareTag("Attack"))
+        {
+            //TODO: this is called a million times holy hell
+            if (_target == other.gameObject)
+            {
+                playerAnimController.AttackTarget = _target.GetComponent<TestTarget>();
+                _target = null;
+                animator.SetBool("IsAttack", true);
+                _selectedTargetId = -1;
+                Moving = false;
+                _rotating = false;
+            }
+        }
+    }
+
+    private void OnTriggerStay(Collider other)
+    {
+        if (other.gameObject.CompareTag("Loot"))
+        {
+            if (_target == other.gameObject)
+            {
+                animator.SetBool("IsPickup", true);
+                other.gameObject.GetComponent<Loot>().pickUp(Inventory);
+                _selectedTargetId = -1;
+                Moving = false;
+                _rotating = false;
+                _target = null;
+            }
+
+        }
+        else if (other.gameObject.CompareTag("Talk"))
+        {
+            //TODO: this is called a million times holy hell
+            if (_target == other.gameObject)
+            {
+                _target = null;
+                other.gameObject.GetComponent<Talk>().Init();
+                _selectedTargetId = -1;
+                Moving = false;
+                _rotating = false;
+            }
+        }
+        else if (other.gameObject.CompareTag("Attack"))
+        {
+            //TODO: this is called a million times holy hell
+            if (_target == other.gameObject)
+            {
+                playerAnimController.AttackTarget = _target.GetComponent<TestTarget>();
+                _target = null;
+                animator.SetBool("IsAttack", true);
+                _selectedTargetId = -1;
+                Moving = false;
                 _rotating = false;
             }
         }

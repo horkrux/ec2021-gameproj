@@ -7,6 +7,7 @@ TagManager:
   - Terrain
   - Loot
   - Talk
+  - Attack
   layers:
   - Default
   - TransparentFX

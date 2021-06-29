@@ -1,15 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UIElements;
 using TMPro;
 using System;
+using DigitalRuby.Tween;
 
 public class ItemPopup : MonoBehaviour
 {
     public ItemLotManager itemLotMan;
     private ItemList scrollViewContent;
     public ItemButton buttonPrefab;
+    public xbot playerModel;
 
     // Start is called before the first frame update
     void Start()
@@ -42,7 +43,15 @@ public class ItemPopup : MonoBehaviour
             itemButton.gameObject.transform.localScale = new Vector3(1.0f, 1.0f, 0); //WHYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
         }
 
+        gameObject.GetComponent<CanvasGroup>().alpha = 0.0f;
         gameObject.SetActive(true);
+
+        System.Action<ITween<float>> updateAlphaVal = (t) =>
+        {
+            gameObject.GetComponent<CanvasGroup>().alpha = t.CurrentValue;
+        };
+
+        gameObject.Tween("MovePanelUp", 0.0f, 1.0f, 0.3f, TweenScaleFunctions.Linear, updateAlphaVal);
     }
 
     public void closeOnClick()
@@ -52,6 +61,19 @@ public class ItemPopup : MonoBehaviour
             Destroy(itemButton.gameObject);
         }
 
-        gameObject.SetActive(false);
+        playerModel.GetComponent<Animator>().SetBool("IsPickup", false);
+
+        System.Action<ITween<float>> updateAlphaVal = (t) =>
+        {
+            gameObject.GetComponent<CanvasGroup>().alpha = t.CurrentValue;
+        };
+
+        System.Action<ITween<float>> fadeOutCompleted = (t) =>
+        {
+            gameObject.SetActive(false);
+        };
+
+        gameObject.Tween("MovePanelUp", 1.0f, 0.0f, 0.3f, TweenScaleFunctions.Linear, updateAlphaVal, fadeOutCompleted);
+
     }
 }

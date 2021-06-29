@@ -2,9 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using DigitalRuby.Tween;
 
 public class InventoryUI : MonoBehaviour
 {
+    public GameObject testest;
+    public GameObject panel;
     public InventoryItems items;
     public PlayerCharacter player;
     private Inventory inventory;
@@ -26,6 +29,17 @@ public class InventoryUI : MonoBehaviour
             inventory = player.GetComponent<Inventory>();
 
         items.Populate(inventory.Items);
+
+        panel.GetComponent<CanvasGroup>().alpha = 0.0f;
+
+        System.Action<ITween<float>> updateAlphaVal = (t) =>
+        {
+            panel.GetComponent<CanvasGroup>().alpha = t.CurrentValue;
+        };
+
+        testest.Tween("FadeInPanel", 0.0f, 1.0f, 0.2f, TweenScaleFunctions.Linear, updateAlphaVal);
+
+        testest.transform.position = new Vector3(testest.transform.position.x, testest.transform.position.y - 100, testest.transform.position.z);
     }
 
     void OnDisable()
@@ -60,7 +74,19 @@ public class InventoryUI : MonoBehaviour
 
     public void CloseOnClick()
     {
-        gameObject.SetActive(false);
+        //testest.transform.position = new Vector3(testest.transform.position.x, testest.transform.position.y + 100, testest.transform.position.z);
+        System.Action<ITween<float>> updateAlphaVal = (t) =>
+        {
+            panel.GetComponent<CanvasGroup>().alpha = t.CurrentValue;
+        };
+
+        System.Action<ITween<float>> fadeOutCompleted = (t) =>
+        {
+            gameObject.SetActive(false);
+        };
+
+        testest.Tween("FadeOutPanel", 1.0f, 0.0f, 0.2f, TweenScaleFunctions.Linear, updateAlphaVal, fadeOutCompleted);
+        
         //items.ClearList();
     }
 
