@@ -133,8 +133,8 @@ public class PlayerController : MonoBehaviour
 
             if (PlayerChr.Rotating)
             {
-                Vector3 newDirection = Vector3.RotateTowards(PlayerChr.gameObject.transform.forward, targetDir, 0.1f, 0.0f);
-                
+                Vector3 newDirection = Vector3.RotateTowards(playerRb.transform.forward, targetDir, 0.1f, 0.0f);
+                newDirection.y = 0;
                 playerRb.MoveRotation(Quaternion.LookRotation(newDirection));
 
                 //PlayerChr.Rotating = false;
