@@ -8,6 +8,12 @@ TagManager:
   - Loot
   - Talk
   - Attack
+  - Goose
+  - Dog
+  - GooseDanger
+  - GooseSeparation
+  - RandomEncounter
+  - Enemy
   layers:
   - Default
   - TransparentFX

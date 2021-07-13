@@ -1,13 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class PlayerCharacter : Character
 {
+    private Vector3 oldPosition = Vector3.zero;
     private xbot playerAnimController;
     private Animator animator;
     private ChrStatModule Stats;
     private Inventory _inventory;
+    private NavMeshAgent agent;
     //private PlayerController Controller;
     private int _selectedTargetId = -1;
     private bool _moving = false;
@@ -50,6 +53,7 @@ public class PlayerCharacter : Character
         _inventory = gameObject.AddComponent<Inventory>();
         animator = gameObject.GetComponentInChildren<Animator>();
         playerAnimController = gameObject.GetComponentInChildren<xbot>();
+        agent = gameObject.GetComponent<NavMeshAgent>();
 
         //hardcode some values
 
@@ -76,6 +80,7 @@ public class PlayerCharacter : Character
         {
             if (_target == collision.gameObject)
             {
+                agent.ResetPath();
                 _selectedTargetId = -1;
                 Moving = false;
                 _rotating = false;
@@ -89,10 +94,13 @@ public class PlayerCharacter : Character
     {
         if (collision.gameObject.CompareTag("Loot"))
         {
+            agent.ResetPath();
             _selectedTargetId = -1;
             Moving = false;
             _rotating = false;
         }
+
+        
     }
 
     private void OnTriggerEnter(Collider other)
@@ -103,6 +111,7 @@ public class PlayerCharacter : Character
             {
                 animator.SetBool("IsPickup", true);
                 other.gameObject.GetComponent<Loot>().pickUp(Inventory);
+                agent.ResetPath();
                 _selectedTargetId = -1;
                 Moving = false;
                 _rotating = false;
@@ -117,6 +126,7 @@ public class PlayerCharacter : Character
             {
                 _target = null;
                 other.gameObject.GetComponent<Talk>().Init();
+                agent.ResetPath();
                 _selectedTargetId = -1;
                 Moving = false;
                 _rotating = false;
@@ -128,12 +138,25 @@ public class PlayerCharacter : Character
             if (_target == other.gameObject)
             {
                 playerAnimController.AttackTarget = _target.GetComponent<TestTarget>();
+                agent.ResetPath();
                 _target = null;
                 animator.SetBool("IsAttack", true);
                 _selectedTargetId = -1;
                 Moving = false;
                 _rotating = false;
             }
+        }
+        else if (other.gameObject.CompareTag("GooseDanger"))
+        {
+            other.gameObject.GetComponentInParent<Goose>().Scare(true);
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.gameObject.CompareTag("GooseDanger"))
+        {
+            other.gameObject.GetComponentInParent<Goose>().Scare(false);
         }
     }
 
@@ -143,6 +166,7 @@ public class PlayerCharacter : Character
         {
             if (_target == other.gameObject)
             {
+                agent.ResetPath();
                 animator.SetBool("IsPickup", true);
                 other.gameObject.GetComponent<Loot>().pickUp(Inventory);
                 _selectedTargetId = -1;
@@ -157,6 +181,7 @@ public class PlayerCharacter : Character
             //TODO: this is called a million times holy hell
             if (_target == other.gameObject)
             {
+                agent.ResetPath();
                 _target = null;
                 other.gameObject.GetComponent<Talk>().Init();
                 _selectedTargetId = -1;
@@ -169,12 +194,34 @@ public class PlayerCharacter : Character
             //TODO: this is called a million times holy hell
             if (_target == other.gameObject)
             {
+                agent.ResetPath();
                 playerAnimController.AttackTarget = _target.GetComponent<TestTarget>();
                 _target = null;
                 animator.SetBool("IsAttack", true);
                 _selectedTargetId = -1;
                 Moving = false;
                 _rotating = false;
+            }
+        }
+        else if (other.gameObject.CompareTag("GooseDanger"))
+        {
+            other.gameObject.GetComponentInParent<Goose>().Scare(true);
+        }
+
+        if (other.gameObject.CompareTag("RandomEncounter"))
+        {
+            if (oldPosition != gameObject.transform.position)
+            {
+                oldPosition = gameObject.transform.position;
+                float rand = Random.Range(0.0f, 1 / other.gameObject.GetComponent<RandomEncounterZone>().encounterChance);
+
+                if (rand <= 1.0f)
+                {
+                    gameObject.GetComponentInParent<PlayerController>().combatMan.IsCombat = true;
+                    other.gameObject.GetComponent<RandomEncounterZone>().SpawnUnits();
+                    other.gameObject.GetComponent<Collider>().enabled = false;
+                }
+
             }
         }
     }

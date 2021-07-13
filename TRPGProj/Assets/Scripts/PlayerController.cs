@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class PlayerController : MonoBehaviour
 {
@@ -15,7 +16,9 @@ public class PlayerController : MonoBehaviour
     public Terrain terrain;
     public float playerHeight = 1.82f; //this is really bad
     Rigidbody playerRb;
+    NavMeshAgent playerAgent;
     GameObject target;
+    public CombatManager combatMan;
     
     // Start is called before the first frame update
     void Start()
@@ -23,6 +26,7 @@ public class PlayerController : MonoBehaviour
         PlayerChr = gameObject.GetComponentInChildren<PlayerCharacter>();
         playerRb = PlayerChr.GetComponent<Rigidbody>();
         camDistance = PlayerCam.transform.position - PlayerChr.transform.position;
+        playerAgent = PlayerChr.GetComponent<NavMeshAgent>();
         //playerRb.AddForce(new Vector3(10.0f, 0, 0));
     }
 
@@ -42,41 +46,44 @@ public class PlayerController : MonoBehaviour
 
                     //terrain = hit.collider.gameObject.GetComponent<Terrain>();
                     movePoint = hit.point;
-                    movePoint.y += playerHeight;
+                    //movePoint.y += playerHeight;
 
                     PlayerChr.Moving = true;
                     PlayerChr.Rotating = true;
+                    playerAgent.destination = movePoint;
                 }
                 else if (hit.collider.gameObject.CompareTag("Loot"))
                 {
                     movePoint = hit.point;
-                    movePoint.y += playerHeight; //this is wrong
+                    //movePoint.y += playerHeight; //this is wrong
                     //PlayerChr.gameObject.transform.Translate(movePoint);
                     PlayerChr.Moving = true;
                     PlayerChr.Rotating = true;
                     PlayerChr.SelectedTargetId = 1;
                     PlayerChr.Target = hit.collider.gameObject;
+                    playerAgent.destination = movePoint;
 
                 }
                 else if (hit.collider.gameObject.CompareTag("Talk"))
                 {
                     movePoint = hit.collider.gameObject.transform.position;
-                    movePoint.y += playerHeight; //this is wrong
+                    //movePoint.y += playerHeight; //this is wrong
                     PlayerChr.Moving = true;
                     PlayerChr.Rotating = true;
                     PlayerChr.SelectedTargetId = 1;
                     PlayerChr.Target = hit.collider.gameObject.transform.parent.gameObject;
+                    playerAgent.destination = movePoint;
 
                 }
                 else if (hit.collider.gameObject.CompareTag("Attack"))
                 {
                     movePoint = hit.collider.gameObject.transform.position;
-                    movePoint.y += playerHeight; //this is wrong
+                    //movePoint.y += playerHeight; //this is wrong
                     PlayerChr.Moving = true;
                     PlayerChr.Rotating = true;
                     PlayerChr.SelectedTargetId = 1;
                     PlayerChr.Target = hit.collider.gameObject.transform.parent.gameObject;
-
+                    playerAgent.destination = movePoint;
                 }
 
             }
@@ -128,7 +135,7 @@ public class PlayerController : MonoBehaviour
             //Vector3 newDirection = Vector3.RotateTowards(PlayerChr.gameObject.transform.forward, targetDir, 0.5f, 0.0f);
             //PlayerChr.gameObject.transform.rotation = Quaternion.LookRotation(newDirection);
             //playerRb.MoveRotation(Quaternion.Euler(newDirection));
-
+            ///////////////////
             Vector3 targetDir = movePoint - playerRb.position;
 
             if (PlayerChr.Rotating)
@@ -139,15 +146,16 @@ public class PlayerController : MonoBehaviour
 
                 //PlayerChr.Rotating = false;
             }
+            ////////////////////
             //Vector3 newDirection = Vector3.RotateTowards(playerRb.transform.forward, targetDir, 0.1f, 0.0f);
             //playerRb.MoveRotation(Quaternion.Euler(newDirection));
             //PlayerChr.gameObject.transform.rotation = Quaternion.Euler(newDirection);
             //playerRb.MoveRotation(Quaternion.Euler(new Vector3(0, 90.0f, 0)));
-            Vector3 inter = Vector3.MoveTowards(playerRb.position, movePoint, 0.1f);
-            inter.y = terrain.SampleHeight(inter) + playerHeight;
-            playerRb.MovePosition(inter);
+            //Vector3 inter = Vector3.MoveTowards(playerRb.position, movePoint, 0.1f);
+            //inter.y = terrain.SampleHeight(inter) + playerHeight;
+            //playerRb.MovePosition(inter);
 
-            if (Vector3.Distance(playerRb.position, movePoint) < 0.001f)
+            if (!playerAgent.pathPending && playerAgent.remainingDistance == 0.0f)//Vector3.Distance(playerRb.position, movePoint) < 0.001f)
             {
                 PlayerChr.Rotating = false;
                 PlayerChr.Moving = false;
