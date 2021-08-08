@@ -6,6 +6,7 @@ using DigitalRuby.Tween;
 
 public class InventoryUI : MonoBehaviour
 {
+    public CombatManager combatMan;
     public GameObject testest;
     public GameObject panel;
     public InventoryItems items;
@@ -69,6 +70,15 @@ public class InventoryUI : MonoBehaviour
         {
             removeButton.enabled = false;
         }
+
+        if (combatMan.IsCombat)
+        {
+            if (combatMan.IsPlayerTurn && combatMan.HasPerformedAction)
+            {
+                useButton.enabled = false;
+                removeButton.enabled = false;
+            }
+        } 
         
     }
 
@@ -96,6 +106,7 @@ public class InventoryUI : MonoBehaviour
         inventory.RemoveItem(items.SelectedItemId);
         items.ClearList();
         PopulateInventoryItems();
+        combatMan.HasPerformedAction = true;
     }
 
     public void ThrowAwayItemOnClick()

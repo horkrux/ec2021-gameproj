@@ -14,12 +14,14 @@ public class Talk : MonoBehaviour
         public List<string> responseStrings;
     }
 
+    public EndScreen endScreen;
     public PlayerCharacter player;
     public TalkWindow talkUI;
     public ItemPopup itemPopup;
     private int TALK_STATE = 0;
     private List<StateData> stateDataList = new List<StateData>();
     private List<Tuple<int, int>> rewards = new List<Tuple<int, int>>();
+    bool showDemoEnd = true;
 
     private int ringItemId = 2;
 
@@ -182,6 +184,12 @@ public class Talk : MonoBehaviour
     {
         TALK_STATE = 9;
         talkUI.gameObject.SetActive(false);
+
+        if (showDemoEnd)
+        {
+            showDemoEnd = false;
+            endScreen.gameObject.SetActive(true);
+        }
     }
 
     private void StateFunc7To6()

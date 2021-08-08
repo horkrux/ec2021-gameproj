@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <states>
 	<state id="0" name="init">
-		<npctext>Hey, would you mind helping me find a ring?
-I must have lost it somewhere in the woods to the north, but I couldn't find it.</npctext>
+		<npctext>Hey, you look strong, would you mind helping me retrieve a ring?
+I must have lost it somewhere in the woods to the north while I was running from bandits...</npctext>
 		<responses numElements="2">
 			<response>OK, I'll look out for it.</response>
 			<response>I don't have time for this.</response>
@@ -46,8 +46,8 @@ I must have lost it somewhere in the woods to the north, but I couldn't find it.
 		</responses>
 	</state>
 	<state id="7" name="init_done">
-	<npctext>Hey, would you mind helping me find a ring? 
-I must have lost it somewhere in the woods to the north, but I couldn't find it.</npctext>
+	<npctext>Hey, you look strong, would you mind helping me retrieve a ring? 
+I must have lost it somewhere in the woods to the north while I was running from bandits...</npctext>
 		<responses numElements="1">
 			<response>Is it this one?</response>
 		</responses>

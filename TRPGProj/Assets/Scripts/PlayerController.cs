@@ -7,6 +7,7 @@ public class PlayerController : MonoBehaviour
 {
     public UnityEngine.EventSystems.EventSystem eventSystem;
     public Camera PlayerCam;
+    public EnemyOptions enemyOptions;
     PlayerCharacter PlayerChr;
     bool moving = false;
     bool rotating = false;
@@ -18,7 +19,8 @@ public class PlayerController : MonoBehaviour
     Rigidbody playerRb;
     NavMeshAgent playerAgent;
     GameObject target;
-    public CombatManager combatMan;
+    
+    private Projector walkRadiusProjector;
     
     // Start is called before the first frame update
     void Start()
@@ -27,67 +29,76 @@ public class PlayerController : MonoBehaviour
         playerRb = PlayerChr.GetComponent<Rigidbody>();
         camDistance = PlayerCam.transform.position - PlayerChr.transform.position;
         playerAgent = PlayerChr.GetComponent<NavMeshAgent>();
+        walkRadiusProjector = PlayerChr.GetComponentInChildren<Projector>();
         //playerRb.AddForce(new Vector3(10.0f, 0, 0));
     }
 
+    // Just dump all the combat functionality into these updates el o el
     // Update is called once per frame
     void Update()
     {
-        if (!eventSystem.IsPointerOverGameObject() && Input.GetMouseButtonDown(0))
+        if (PlayerChr.combatMan.IsCombat)
         {
-            Ray ray = PlayerCam.ScreenPointToRay(Input.mousePosition);
-
-            RaycastHit hit;
-
-            if (Physics.Raycast(ray, out hit))
+            CombatUpdate();
+        }
+        else
+        {
+            if (!eventSystem.IsPointerOverGameObject() && Input.GetMouseButtonDown(0))
             {
-                if (hit.collider.gameObject.CompareTag("Terrain"))
+                Ray ray = PlayerCam.ScreenPointToRay(Input.mousePosition);
+
+                RaycastHit hit;
+
+                if (Physics.Raycast(ray, out hit))
                 {
+                    if (hit.collider.gameObject.CompareTag("Terrain"))
+                    {
+                        //terrain = hit.collider.gameObject.GetComponent<Terrain>();
+                        movePoint = hit.point;
+                        //movePoint.y += playerHeight;
 
-                    //terrain = hit.collider.gameObject.GetComponent<Terrain>();
-                    movePoint = hit.point;
-                    //movePoint.y += playerHeight;
+                        PlayerChr.Moving = true;
+                        PlayerChr.Rotating = true;
+                        playerAgent.destination = movePoint;
+                    }
+                    else if (hit.collider.gameObject.CompareTag("Loot"))
+                    {
+                        movePoint = hit.point;
+                        //movePoint.y += playerHeight; //this is wrong
+                        //PlayerChr.gameObject.transform.Translate(movePoint);
+                        PlayerChr.Moving = true;
+                        PlayerChr.Rotating = true;
+                        PlayerChr.SelectedTargetId = 1;
+                        PlayerChr.Target = hit.collider.gameObject;
+                        playerAgent.destination = movePoint;
 
-                    PlayerChr.Moving = true;
-                    PlayerChr.Rotating = true;
-                    playerAgent.destination = movePoint;
+                    }
+                    else if (hit.collider.gameObject.CompareTag("Talk"))
+                    {
+                        movePoint = hit.collider.gameObject.transform.position;
+                        //movePoint.y += playerHeight; //this is wrong
+                        PlayerChr.Moving = true;
+                        PlayerChr.Rotating = true;
+                        PlayerChr.SelectedTargetId = 1;
+                        PlayerChr.Target = hit.collider.gameObject.transform.parent.gameObject;
+                        playerAgent.destination = movePoint;
+
+                    }
+                    else if (hit.collider.gameObject.CompareTag("Attack"))
+                    {
+                        movePoint = hit.collider.gameObject.transform.position;
+                        //movePoint.y += playerHeight; //this is wrong
+                        PlayerChr.Moving = true;
+                        PlayerChr.Rotating = true;
+                        PlayerChr.SelectedTargetId = 1;
+                        PlayerChr.Target = hit.collider.gameObject.transform.parent.gameObject;
+                        playerAgent.destination = movePoint;
+                    }
+
                 }
-                else if (hit.collider.gameObject.CompareTag("Loot"))
-                {
-                    movePoint = hit.point;
-                    //movePoint.y += playerHeight; //this is wrong
-                    //PlayerChr.gameObject.transform.Translate(movePoint);
-                    PlayerChr.Moving = true;
-                    PlayerChr.Rotating = true;
-                    PlayerChr.SelectedTargetId = 1;
-                    PlayerChr.Target = hit.collider.gameObject;
-                    playerAgent.destination = movePoint;
-
-                }
-                else if (hit.collider.gameObject.CompareTag("Talk"))
-                {
-                    movePoint = hit.collider.gameObject.transform.position;
-                    //movePoint.y += playerHeight; //this is wrong
-                    PlayerChr.Moving = true;
-                    PlayerChr.Rotating = true;
-                    PlayerChr.SelectedTargetId = 1;
-                    PlayerChr.Target = hit.collider.gameObject.transform.parent.gameObject;
-                    playerAgent.destination = movePoint;
-
-                }
-                else if (hit.collider.gameObject.CompareTag("Attack"))
-                {
-                    movePoint = hit.collider.gameObject.transform.position;
-                    //movePoint.y += playerHeight; //this is wrong
-                    PlayerChr.Moving = true;
-                    PlayerChr.Rotating = true;
-                    PlayerChr.SelectedTargetId = 1;
-                    PlayerChr.Target = hit.collider.gameObject.transform.parent.gameObject;
-                    playerAgent.destination = movePoint;
-                }
-
             }
         }
+        
 
         if (PlayerChr.Moving)
         {
@@ -126,6 +137,73 @@ public class PlayerController : MonoBehaviour
         
     }
 
+    private void CombatUpdate()
+    {
+        if (PlayerChr.combatMan.IsPlayerTurn && !PlayerChr.combatMan.HasMoved && !PlayerChr.combatMan.HasPerformedAction && !eventSystem.IsPointerOverGameObject() && Input.GetMouseButtonDown(0))
+        {
+            Ray ray = PlayerCam.ScreenPointToRay(Input.mousePosition);
+
+            RaycastHit hit;
+
+            if (Physics.Raycast(ray, out hit))
+            {
+                if (hit.collider.gameObject.CompareTag("Terrain"))
+                {
+                    float dist = Vector2.Distance(new Vector2(hit.point.x, hit.point.z), new Vector2(PlayerChr.transform.position.x, PlayerChr.transform.position.z));
+                    
+                    if (dist <= PlayerChr.MovementRange && PlayerChr.combatMan.IsPositionWithinBattleZone(hit.point))
+                    {
+                        //terrain = hit.collider.gameObject.GetComponent<Terrain>();
+                        movePoint = hit.point;
+                        //movePoint.y += playerHeight;
+                        //combatMan.PlayerMoved();
+                        PlayerChr.Moving = true;
+                        PlayerChr.Rotating = true;
+                        PlayerChr.combatMan.HasMoved = true;
+                        playerAgent.destination = movePoint;
+                    }
+                }
+                else if (hit.collider.gameObject.CompareTag("Attack"))
+                {
+                    movePoint = hit.collider.gameObject.transform.position;
+                    //movePoint.y += playerHeight; //this is wrong
+                    //combatMan.PlayerMoved();
+                    
+                    PlayerChr.Moving = true;
+                    PlayerChr.Rotating = true;
+                    PlayerChr.combatMan.HasPerformedAction = true;
+                    PlayerChr.SelectedTargetId = 1;
+                    PlayerChr.Target = hit.collider.gameObject.transform.parent.gameObject;
+                    playerAgent.destination = movePoint;
+                }
+                
+            }
+        }
+
+        if (PlayerChr.combatMan.IsPlayerTurn && !PlayerChr.combatMan.HasPerformedAction && !eventSystem.IsPointerOverGameObject() && Input.GetMouseButtonDown(0))
+        {
+            Ray ray = PlayerCam.ScreenPointToRay(Input.mousePosition);
+
+            RaycastHit hit;
+
+            if (Physics.Raycast(ray, out hit))
+            {
+                if (hit.collider.gameObject.CompareTag("Enemy"))
+                {
+                    EnemyCharacter enemy = hit.collider.gameObject.GetComponent<EnemyCharacter>();
+
+                    if (enemy.IsAlive && PlayerChr.combatMan.EnemyInRange(enemy.gameObject) && !PlayerChr.combatMan.HasPerformedAction)
+                    {
+                        enemyOptions.Enemy = enemy;
+                        enemyOptions.gameObject.SetActive(true);
+                        PlayerChr.combatMan.TurnPlayerCharacter(enemy);
+                    }
+                }
+            }
+        }
+        
+    }
+
     private void FixedUpdate()
     {
         if (PlayerChr.Moving)
@@ -155,10 +233,23 @@ public class PlayerController : MonoBehaviour
             //inter.y = terrain.SampleHeight(inter) + playerHeight;
             //playerRb.MovePosition(inter);
 
-            if (!playerAgent.pathPending && playerAgent.remainingDistance == 0.0f)//Vector3.Distance(playerRb.position, movePoint) < 0.001f)
+            if (!playerAgent.pathPending && playerAgent.remainingDistance <= 0.3f)//Vector3.Distance(playerRb.position, movePoint) < 0.001f)
             {
                 PlayerChr.Rotating = false;
                 PlayerChr.Moving = false;
+            }
+        } 
+        else if (PlayerChr.RotatingCombatTarget)
+        {
+            Vector3 targetDir = PlayerChr.Target.transform.position - playerRb.position;
+
+            Vector3 newDirection = Vector3.RotateTowards(playerRb.transform.forward, targetDir, 0.1f, 0.0f);
+            newDirection.y = 0;
+            playerRb.MoveRotation(Quaternion.LookRotation(newDirection));
+
+            if (playerRb.rotation == Quaternion.LookRotation(newDirection))
+            {
+                PlayerChr.RotatingCombatTarget = false;
             }
         }
 
@@ -166,6 +257,50 @@ public class PlayerController : MonoBehaviour
 
     private void LateUpdate()
     {
-        PlayerCam.transform.position = PlayerChr.transform.position + camDistance;
+        if (PlayerChr.ReCenterCam)
+        {
+            PlayerChr.ReCenterCam = false;
+            PlayerCam.transform.position = PlayerChr.transform.position + camDistance;
+        }
+
+        if (!PlayerChr.combatMan.IsCombat)
+        {
+            PlayerCam.transform.position = PlayerChr.transform.position + camDistance;
+        } 
+        else if (PlayerChr.combatMan.IsPlayerTurn)
+        {
+            MoveCameraWASD();
+        }
+        else
+        {
+            if (PlayerChr.CamFollowTarget)
+                PlayerCam.transform.position = PlayerChr.CamFollowTarget.transform.position + camDistance;
+        }
+        
+    }
+
+    private void MoveCameraWASD()
+    {
+        PlayerCam.transform.position += new Vector3(Input.GetAxisRaw("Horizontal") * 0.1f, 0, Input.GetAxisRaw("Vertical") * 0.1f);
+
+        //if (Input.GetKeyDown(KeyCode.W))
+        //{
+        //    PlayerCam.transform.position += new Vector3(0, 0, 1);
+        //}
+        //else if (Input.GetKeyDown(KeyCode.S))
+        //{
+        //    PlayerCam.transform.position += new Vector3(0, 0, -1);
+        //}
+
+        //if (Input.GetKeyDown(KeyCode.A))
+        //{
+        //    PlayerCam.transform.position += new Vector3(-1, 0, 0);
+        //} 
+        //else if (Input.GetKeyDown(KeyCode.D))
+        //{
+        //    PlayerCam.transform.position += new Vector3(1, 0, 0);
+        //}
+                
+                
     }
 }

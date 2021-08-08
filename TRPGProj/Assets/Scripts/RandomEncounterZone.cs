@@ -5,9 +5,14 @@ using UnityEngine.AI;
 
 public class RandomEncounterZone : MonoBehaviour
 {
+    public int rewardItemId = 0; //hardcode
+    public ItemLotManager itemLotMan;
+    public CombatManager combatMan;
     public EnemyCharacter prefabEnemy;
     int _encounterId;
-    public float encounterChance = 0.1f; //very high, so it happens right away
+    public float encounterChance = 0.005f; //very high, so it happens right away
+    public int minEnemies = 2;
+    public int maxEnemies = 5;
 
     // Start is called before the first frame update
     void Start()
@@ -29,7 +34,7 @@ public class RandomEncounterZone : MonoBehaviour
 
         var rand = new System.Random();
 
-        int numEnemies = rand.Next(5, 11);
+        int numEnemies = rand.Next(minEnemies, maxEnemies + 1);
 
         for (int i = 0; i < numEnemies; i++)
         {
@@ -46,17 +51,17 @@ public class RandomEncounterZone : MonoBehaviour
                 enemy.gameObject.SetActive(true);
                 enemy.AttackDmg = rand.Next(1, 6);
                 enemy.Defense = rand.Next(1, 6);
+                
+                enemy.randomStrengthValue = rand.Next(1, 3);
+                enemy.randomDexValue = rand.Next(1, 5);
+
+                combatMan.RegisterEnemy(enemy);
             }
             else
             {
                 Debug.LogError("Couldn't find spot on navimesh for enemy spawn location");
             }
         }
-
-        
-
-        
-
 
     }
 }

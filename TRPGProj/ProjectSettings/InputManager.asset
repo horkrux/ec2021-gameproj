@@ -490,7 +490,7 @@ InputManager:
     descriptiveName: 
     descriptiveNegativeName: 
     negativeButton: 
-    positiveButton: w
+    positiveButton: t
     altNegativeButton: 
     altPositiveButton: 
     gravity: 1000
@@ -505,7 +505,7 @@ InputManager:
     m_Name: Dog Seek
     descriptiveName: 
     descriptiveNegativeName: 
-    negativeButton: s
+    negativeButton: f
     positiveButton: 
     altNegativeButton: 
     altPositiveButton: 
@@ -521,7 +521,7 @@ InputManager:
     m_Name: Dog Hunt
     descriptiveName: 
     descriptiveNegativeName: 
-    negativeButton: d
+    negativeButton: g
     positiveButton: 
     altNegativeButton: 
     altPositiveButton: 

@@ -5,17 +5,22 @@ using UnityEngine.AI;
 
 public class PlayerCharacter : Character
 {
+    private bool _rotatingCombatTarget = false;
     private Vector3 oldPosition = Vector3.zero;
     private xbot playerAnimController;
-    private Animator animator;
-    private ChrStatModule Stats;
+    
+    
     private Inventory _inventory;
-    private NavMeshAgent agent;
+    
     //private PlayerController Controller;
+    private float _movementRange = 10.0f;
+    private float _attackRange = 2.0f;
     private int _selectedTargetId = -1;
     private bool _moving = false;
     private bool _rotating = false;
     private GameObject _target = null;
+    private GameObject _camFollowTarget;
+    private bool _reCenterCam = false;
     public int SelectedTargetId
     {
         get { return _selectedTargetId; }
@@ -23,8 +28,8 @@ public class PlayerCharacter : Character
     }
     public bool Moving
     {
-        get { return animator.GetBool("IsMoving"); }
-        set { animator.SetBool("IsMoving", value); }
+        get { return ChrAnimator.GetBool("IsMoving"); }
+        set { ChrAnimator.SetBool("IsMoving", value); }
         //get { return _moving; }
         //set { _moving = value; }
     }
@@ -33,6 +38,12 @@ public class PlayerCharacter : Character
     {
         get { return _rotating; }
         set { _rotating = value; }
+    }
+
+    public bool RotatingCombatTarget
+    {
+        get { return _rotatingCombatTarget; }
+        set { _rotatingCombatTarget = value; }
     }
 
     public GameObject Target
@@ -46,32 +57,62 @@ public class PlayerCharacter : Character
         get { return _inventory; }
     }
 
+    public float MovementRange
+    {
+        get { return _movementRange; }
+        set { _movementRange = value; }
+    }
+
+    public float AttackRange
+    {
+        get { return _attackRange; }
+        set { _attackRange = value; }
+    }
+
+    public GameObject CamFollowTarget
+    {
+        get { return _camFollowTarget; }
+        set { _camFollowTarget = value; }
+    }
+
+    public bool ReCenterCam
+    {
+        get { return _reCenterCam; }
+        set { _reCenterCam = value; }
+    }
+
     // Start is called before the first frame update
     void Start()
     {
-        Stats = gameObject.AddComponent<ChrStatModule>();
+        IsPlayer = true;
+        _stats = gameObject.AddComponent<ChrStatModule>();
+        _animator = gameObject.GetComponentInChildren<Animator>();
         _inventory = gameObject.AddComponent<Inventory>();
-        animator = gameObject.GetComponentInChildren<Animator>();
+        obstacle = gameObject.GetComponent<NavMeshObstacle>();
+        //animator = gameObject.GetComponentInChildren<Animator>();
         playerAnimController = gameObject.GetComponentInChildren<xbot>();
         agent = gameObject.GetComponent<NavMeshAgent>();
 
         //hardcode some values
 
-        Stats.Strength = 1;
-        Stats.Dexterity = 1;
-        Stats.Balance = 1;
-        Stats.Intelligence = 1;
+        Stats.Strength = 8;
+        Stats.Dexterity = 10;
+        Stats.Balance = 10;
+        Stats.Intelligence = 10;
 
         InitHpMana(100, 100);
-        DecHp(50);
-        DecMana(50);
+        //DecHp(50);
+        //DecMana(50);
         //Controller = gameObject.transform.parent.gameObject.GetComponent<PlayerController>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        if (!IsAlive && enabled)
+        {
+            enabled = false;
+        }
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -109,7 +150,7 @@ public class PlayerCharacter : Character
         {
             if (_target == other.gameObject)
             {
-                animator.SetBool("IsPickup", true);
+                ChrAnimator.SetBool("IsPickup", true);
                 other.gameObject.GetComponent<Loot>().pickUp(Inventory);
                 agent.ResetPath();
                 _selectedTargetId = -1;
@@ -121,7 +162,6 @@ public class PlayerCharacter : Character
         }
         else if (other.gameObject.CompareTag("Talk"))
         {
-            //TODO: this is called a million times holy hell
             if (_target == other.gameObject)
             {
                 _target = null;
@@ -134,13 +174,12 @@ public class PlayerCharacter : Character
         }
         else if (other.gameObject.CompareTag("Attack"))
         {
-            //TODO: this is called a million times holy hell
             if (_target == other.gameObject)
             {
-                playerAnimController.AttackTarget = _target.GetComponent<TestTarget>();
+                //playerAnimController.AttackTarget = _target.GetComponent<TestTarget>();
                 agent.ResetPath();
                 _target = null;
-                animator.SetBool("IsAttack", true);
+                ChrAnimator.SetBool("IsAttack", true);
                 _selectedTargetId = -1;
                 Moving = false;
                 _rotating = false;
@@ -167,7 +206,7 @@ public class PlayerCharacter : Character
             if (_target == other.gameObject)
             {
                 agent.ResetPath();
-                animator.SetBool("IsPickup", true);
+                ChrAnimator.SetBool("IsPickup", true);
                 other.gameObject.GetComponent<Loot>().pickUp(Inventory);
                 _selectedTargetId = -1;
                 Moving = false;
@@ -178,7 +217,6 @@ public class PlayerCharacter : Character
         }
         else if (other.gameObject.CompareTag("Talk"))
         {
-            //TODO: this is called a million times holy hell
             if (_target == other.gameObject)
             {
                 agent.ResetPath();
@@ -191,13 +229,12 @@ public class PlayerCharacter : Character
         }
         else if (other.gameObject.CompareTag("Attack"))
         {
-            //TODO: this is called a million times holy hell
             if (_target == other.gameObject)
             {
                 agent.ResetPath();
-                playerAnimController.AttackTarget = _target.GetComponent<TestTarget>();
+                //playerAnimController.AttackTarget = _target.GetComponent<TestTarget>();
                 _target = null;
-                animator.SetBool("IsAttack", true);
+                ChrAnimator.SetBool("IsAttack", true);
                 _selectedTargetId = -1;
                 Moving = false;
                 _rotating = false;
@@ -217,13 +254,20 @@ public class PlayerCharacter : Character
 
                 if (rand <= 1.0f)
                 {
-                    gameObject.GetComponentInParent<PlayerController>().combatMan.IsCombat = true;
                     other.gameObject.GetComponent<RandomEncounterZone>().SpawnUnits();
+                    combatMan.StartCombat(other.gameObject.GetComponent<RandomEncounterZone>());
+                    //gameObject.GetComponentInParent<PlayerController>().combatMan.IsCombat = true;
                     other.gameObject.GetComponent<Collider>().enabled = false;
                 }
 
             }
         }
+    }
+
+    public void Attack(EnemyCharacter enemy)
+    {
+        playerAnimController.AttackTarget = enemy;
+        ChrAnimator.SetBool("IsAttack", true);
     }
 
     public int GetStrength()
